@@ -8,8 +8,6 @@ import (
 	"github.com/jmoiron/sqlx"
 	"github.com/stretchr/testify/assert"
 	_ "modernc.org/sqlite"
-
-	"github.com/sqwdvrt/final-test/db"
 )
 
 type Task struct {
@@ -26,19 +24,17 @@ func count(db *sqlx.DB) (int, error) {
 }
 
 func openDB(t *testing.T) *sqlx.DB {
-	dbfile := db.DBFile
+	dbfile := DBFile
 	envFile := os.Getenv("TODO_DBFILE")
 	if len(envFile) > 0 {
 		dbfile = envFile
 	}
-	dbx, err := sqlx.Connect("sqlite", dbfile)
+	db, err := sqlx.Connect("sqlite", dbfile)
 	assert.NoError(t, err)
-	return dbx
+	return db
 }
 
 func TestDB(t *testing.T) {
-	assert.NoError(t, db.Init())
-
 	db := openDB(t)
 	defer db.Close()
 
@@ -52,7 +48,6 @@ func TestDB(t *testing.T) {
 	assert.NoError(t, err)
 
 	id, err := res.LastInsertId()
-	assert.NoError(t, err)
 
 	var task Task
 	err = db.Get(&task, `SELECT * FROM scheduler WHERE id=?`, id)
